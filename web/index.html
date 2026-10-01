@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>游戏规则百科 · 规则闭包与历史回放</title>
+<link rel="stylesheet" href="/web/app.css"/>
+</head>
+<body>
+<header>
+  <div class="brand">🎮 游戏规则百科</div>
+  <div class="sub">规则版本 · 闭包冻结 · 有界/非法递归诊断 · 历史回放</div>
+  <div id="meta" class="meta"></div>
+</header>
+
+<nav class="tabs">
+  <button data-tab="search" class="active">① 检索角色 / 地图 / 计分</button>
+  <button data-tab="replay">② 历史比赛回放</button>
+  <button data-tab="custom">③ 规则服务解释局面</button>
+  <button data-tab="packages">④ 补丁包与身份校验</button>
+  <button data-tab="admin">⑤ 索引管理（中断演练）</button>
+</nav>
+
+<main>
+<!-- ============ 检索 ============ -->
+<section id="tab-search" class="tab active">
+  <div class="card">
+    <div class="row">
+      <input id="q" placeholder="搜索：nova / 霓虹 / 击杀 / 勘误 …" />
+      <select id="dtype">
+        <option value="">全部类型</option>
+        <option value="rule">规则</option>
+        <option value="package">补丁包</option>
+        <option value="errata">勘误</option>
+        <option value="example">比赛示例</option>
+      </select>
+      <button id="btnSearch" class="primary">搜索</button>
+    </div>
+    <div class="row hint">
+      <label><input type="checkbox" id="hist"/> 历史过滤：按时间点 as_of</label>
+      <input id="asof" placeholder="2026-09-11T12:00:00Z" disabled/>
+      <label><input type="checkbox" id="allHist"/> 包含全部历史版本</label>
+      <span class="muted">默认只检索<strong>当前版</strong>；勾选后可查任意历史时间点</span>
+    </div>
+    <div id="searchResults" class="results"></div>
+  </div>
+</section>
+
+<!-- ============ 回放 ============ -->
+<section id="tab-replay" class="tab">
+  <div class="card">
+    <div class="row">
+      <select id="exampleSel"></select>
+      <button id="btnReplay" class="primary">按冻结闭包回放</button>
+      <button id="btnReportJson">导出报告 JSON</button>
+      <button id="btnReportMd">导出报告 Markdown</button>
+    </div>
+    <div id="replayMeta"></div>
+  </div>
+  <div id="freezeBanner" class="banner hidden"></div>
+  <div id="corrections" class="corrections"></div>
+  <div class="card">
+    <h3>总分输出</h3>
+    <pre id="finalScore" class="score"></pre>
+  </div>
+  <div class="card">
+    <h3>逐步解释分数来源</h3>
+    <div id="steps"></div>
+  </div>
+</section>
+
+<!-- ============ 自定义解释 ============ -->
+<section id="tab-custom" class="tab">
+  <div class="card">
+    <div class="row wrap">
+      <label>补丁包 <select id="cPkg"><option value="">（当前版）</option></select></label>
+      <label>或时间点 <input id="cAsof" placeholder="2026-09-11T12:00:00Z"/></label>
+      <label>或快照哈希 <input id="cHash" placeholder="sha256:..."/></label>
+      <label>节点预算 <input id="cBudget" type="number" value="200000" style="width:110px"/></label>
+    </div>
+    <div class="row">
+      <span class="muted">局面输入：</span>
+      <button data-fill="magnet">磁铁×霓虹（冲突）</button>
+      <button data-fill="shield">护盾示例</button>
+      <button data-fill="budget">超预算局面</button>
+    </div>
+    <textarea id="cInputs" rows="8"></textarea>
+    <div class="row">
+      <button id="btnExplain" class="primary">解释局面</button>
+      <button id="btnCustomReport">导出报告</button>
+      <span id="cHashOut" class="muted"></span>
+    </div>
+    <div id="customDiag" class="diag hidden"></div>
+  </div>
+  <div class="card">
+    <h3>总分输出</h3>
+    <pre id="customScore" class="score"></pre>
+  </div>
+  <div class="card">
+    <h3>逐步解释分数来源</h3>
+    <div id="customSteps"></div>
+  </div>
+</section>
+
+<!-- ============ 补丁包 ============ -->
+<section id="tab-packages" class="tab">
+  <div class="card">
+    <h3>补丁包与预编译身份</h3>
+    <p class="muted">预编译每个补丁规则包，并与按 as_of 重新组合的结果比对“规则内容身份”；
+      完整闭包身份随 scope 不同而不同（回放防串包）。</p>
+    <div id="pkgList"></div>
+  </div>
+  <div class="card">
+    <h3>规则包摘要</h3>
+    <div class="row">
+      <select id="sumPkg"></select>
+      <button id="btnSummary">查看摘要</button>
+    </div>
+    <pre id="pkgSummary" class="summary"></pre>
+  </div>
+</section>
+
+<!-- ============ 索引管理 ============ -->
+<section id="tab-admin" class="tab">
+  <div class="card">
+    <h3>检索索引：原子重建与“更新中断”演练</h3>
+    <div class="row">
+      <button id="btnReindex" class="primary">正常重建</button>
+      <button id="btnReindexFail">模拟写入 3 行后中断</button>
+    </div>
+    <pre id="indexStatus" class="summary"></pre>
+    <p class="muted">中断只发生在影子表 search_index_stage；线上 search_index 不动，
+      服务可继续检索，直接重试即可恢复。</p>
+  </div>
+</section>
+</main>
+
+<div id="toast" class="toast hidden"></div>
+<script src="/web/app.js"></script>
+</body>
+</html>
