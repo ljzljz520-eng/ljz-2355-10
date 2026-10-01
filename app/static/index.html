@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>游戏规则百科 · Rules Encyclopedia</title>
+<style>
+  :root { --bg:#0f1420; --panel:#171e2e; --panel2:#1d2638; --ink:#e6ebf5;
+          --muted:#93a0b8; --line:#2a3550; --accent:#5aa7ff; --ok:#3ddc97;
+          --warn:#ffb454; --err:#ff6b6b; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.55 -apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+         background:var(--bg); color:var(--ink); }
+  header { padding:16px 24px; border-bottom:1px solid var(--line); display:flex; gap:16px; align-items:baseline; }
+  header h1 { font-size:18px; margin:0; }
+  header span { color:var(--muted); font-size:12px; }
+  nav { display:flex; gap:4px; padding:10px 24px 0; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  nav button { background:none; border:1px solid transparent; color:var(--muted);
+    padding:8px 14px; cursor:pointer; border-radius:8px 8px 0 0; font-size:14px; }
+  nav button.active { color:var(--ink); background:var(--panel); border-color:var(--line);
+    border-bottom-color:var(--panel); position:relative; top:1px; }
+  main { padding:20px 24px; max-width:1180px; margin:0 auto; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:14px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  input,select,textarea,button { font:inherit; }
+  input[type=text],select,textarea { background:var(--panel2); border:1px solid var(--line);
+    color:var(--ink); border-radius:7px; padding:8px 10px; }
+  input[type=text]{ min-width:280px; }
+  textarea { width:100%; min-height:230px; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12.5px; }
+  button.primary { background:var(--accent); border:none; color:#08111f; border-radius:7px;
+    padding:8px 16px; font-weight:600; cursor:pointer; }
+  button.ghost { background:var(--panel2); border:1px solid var(--line); color:var(--ink);
+    border-radius:7px; padding:7px 12px; cursor:pointer; }
+  .muted { color:var(--muted); font-size:12.5px; }
+  .tag { display:inline-block; font-size:11px; padding:1px 8px; border-radius:99px;
+    border:1px solid var(--line); color:var(--muted); margin-right:6px; }
+  .tag.kind-scoring{ color:#ffd479; border-color:#6b5424; }
+  .tag.kind-character{ color:#8fd0ff; border-color:#264b66; }
+  .tag.kind-map{ color:#89e0c3; border-color:#22564a; }
+  .tag.kind-item{ color:#d8a8ff; border-color:#4d3466; }
+  .tag.bad{ color:var(--err); border-color:#6b2d2d; }
+  .tag.ok{ color:var(--ok); border-color:#22543f; }
+  .tag.warn{ color:var(--warn); border-color:#6b4f24; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  tr.clickable { cursor:pointer; } tr.clickable:hover { background:var(--panel2); }
+  pre { background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:12px;
+        overflow:auto; font-size:12px; }
+  .step { padding:9px 12px; border-left:3px solid var(--line); margin:7px 0; background:var(--panel2);
+          border-radius:0 8px 8px 0; }
+  .step.add { border-left-color:var(--ok); }
+  .step.skip { border-left-color:var(--muted); opacity:.85; }
+  .step.conflict { border-left-color:var(--warn); }
+  .step.total { border-left-color:var(--accent); font-weight:700; }
+  .step.failed { border-left-color:var(--err); }
+  .diag { border-radius:8px; padding:9px 12px; margin:6px 0; font-size:12.5px; }
+  .diag.error { background:#321a1c; border:1px solid #6b2d2d; }
+  .diag.warning { background:#2e2616; border:1px solid #6b4f24; }
+  .diag.info { background:#18233a; border:1px solid #26405f; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .bigscore { font-size:34px; font-weight:800; color:var(--ok); }
+  .pill { font-size:11px; padding:2px 8px; border-radius:99px; background:var(--panel2);
+          border:1px solid var(--line); color:var(--muted); }
+  .progress { height:8px; background:var(--panel2); border-radius:99px; overflow:hidden; }
+  .progress > div { height:100%; background:var(--accent); }
+  @media (max-width:900px){ .grid2{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎮 游戏规则百科</h1>
+  <span>冻结闭包 · 依赖校验 · 勘误关系 · 历史回放</span>
+</header>
+<nav id="tabs">
+  <button data-tab="search" class="active">① 百科检索</button>
+  <button data-tab="explain">② 规则服务：局面解释</button>
+  <button data-tab="examples">③ 比赛示例与历史回放</button>
+  <button data-tab="packages">④ 预编译 vs 查询组合</button>
+  <button data-tab="errata">⑤ 勘误与生效区间</button>
+  <button data-tab="index">⑥ 索引管理</button>
+</nav>
+<main>
+  <section id="tab-search"></section>
+  <section id="tab-explain" hidden></section>
+  <section id="tab-examples" hidden></section>
+  <section id="tab-packages" hidden></section>
+  <section id="tab-errata" hidden></section>
+  <section id="tab-index" hidden></section>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>
